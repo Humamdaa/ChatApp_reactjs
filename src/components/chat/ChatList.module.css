@@ -1,0 +1,83 @@
+/* ChatList Styles */
+.chatList {
+  position: fixed;
+  /* bottom: 0px; */
+  top: 70px;
+  left: 0;
+  padding: 10px;
+  background-color: #505050;
+  border-right: 1px solid #e1e4e8;
+  width: 30%;
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatList h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #007bff;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #ddd;
+}
+
+.userListContainer {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
+  padding: 10px 0;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  margin-bottom: 12px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  width: 100%;
+}
+
+.userItem:hover {
+  background-color: #f1f1f1;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.userItem:active {
+  background-color: #e1e1e1;
+}
+
+/* Avatar styling */
+.avatar {
+  margin-right: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  padding: 8px;
+}
+
+.userDetails {
+  flex-grow: 1; /* Allow the name and other details to grow and take available space */
+}
+
+.userName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Truncate text if it overflows */
+}
+
+.userItem:hover .userName {
+  color: #007bff; /* Change name color on hover for better interactivity */
+  font-size: 20px;
+}

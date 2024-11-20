@@ -1,0 +1,88 @@
+/* Navbar container styling */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #333;
+  color: white;
+  position: relative; /* Make sure the navbar doesn't overlap content */
+  z-index: 10; /* Ensure navbar stays above content */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Navbar brand styling */
+.navBrand {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.navBrandText {
+  color: white;
+  text-decoration: none;
+}
+
+/* Menu button, only visible on small screens */
+.menuButton {
+  display: none;
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Navigation links container */
+.navLinks {
+  display: flex;
+  gap: 20px;
+}
+
+/* Individual link styles */
+.navLink {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+/* Open state for the menu when toggled */
+.navLinks.open {
+  display: block;
+  width: 100%;
+  background-color: #444;
+}
+
+/* Styling for the links when the menu is open */
+.navLinks.open .navLink {
+  display: block;
+  padding: 10px 0;
+  border-top: 1px solid #555;
+}
+
+/* Media query for small screens */
+@media (max-width: 768px) {
+  .menuButton {
+    display: block;
+  }
+
+  .navLinks {
+    display: none; /* Hide nav links by default on small screens */
+    position: absolute;
+    top: 60px; /* Place the menu below the navbar */
+    left: 0;
+    width: 100%;
+    background-color: #333;
+  }
+
+  .navLinks.open {
+    display: block; /* Display nav links when menu is toggled */
+  }
+
+  .navLink {
+    text-align: center;
+    padding: 15px;
+    width: 100%;
+    border-top: 1px solid #555;
+  }
+}

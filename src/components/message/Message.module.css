@@ -1,0 +1,35 @@
+
+.message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.success {
+  background-color: #28a745; /* Green */
+}
+
+.error {
+  background-color: #dc3545; /* Red */
+}
+
+.info {
+  background-color: #17a2b8; /* Blue */
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  position: absolute;
+  top: 5px;
+  right: 10px;
+}
