@@ -25,7 +25,8 @@ export const getUser = () => {
 export const getChats = async (userId) => {
   try {
     const response = await axios.get(`${BASE_URL}/${userId}`);
-    return response.data;
+    const mergedChats = response.data;
+    return mergedChats.chats;
   } catch (error) {
     console.error("Error fetching chats:", error);
     throw error;
@@ -34,10 +35,12 @@ export const getChats = async (userId) => {
 
 // Fetch messages in a specific chat
 export const getMessages = (chatId) => {
+  console.log("ch:", chatId);
   return axios
     .get(`${BASE_URL}/msg/${chatId}`)
     .then((response) => response.data)
     .catch((error) => {
+      console.log(error);
       console.error("Error fetching messages:", error);
       throw error;
     });
@@ -45,9 +48,24 @@ export const getMessages = (chatId) => {
 
 // Open a specific chat between two users
 export const openChatBetweenUsers = (user1Id, user2Id) => {
+  const token = localStorage.getItem("token"); // Retrieve token from localStorage
+
+  if (!token) {
+    console.error("No token found in localStorage");
+    throw new Error("No token found");
+  }
+
   return axios
-    .get(`${BASE_URL}/find/${user1Id}/${user2Id}`)
-    .then((response) => response.data)
+    .post(
+      `${BASE_URL}/find/${user1Id}/${user2Id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Send token in Authorization header
+        },
+      }
+    )
+    .then((response) => response.data._id)
     .catch((error) => {
       console.error("Error opening chat:", error);
       throw error;

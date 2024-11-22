@@ -10,8 +10,7 @@ import Login from "./pages/Login";
 // import { setupLocalStorageCleanup } from "./services/clearLocalStorage";
 
 function App() {
-  const validToken = localStorage.getItem("token");
-
+  
   // useEffect(() => {
   //   const cleanup = setupLocalStorageCleanup();
 
@@ -23,7 +22,7 @@ function App() {
       <NavBar />
       {/* <Container className="text-secondary"> */}
       <Routes>
-        {validToken && <Route path="/" element={<Chat />} />}
+        {<Route path="/" element={<Chat />} />}
         <Route path="/register" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/*" element={<Navigate to="/" />} />

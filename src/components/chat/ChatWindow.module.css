@@ -1,8 +1,19 @@
 /* ChatWindow Styles */
 .chatWindow {
-  display: flex;
+  position: fixed;      /* Position the window fixed on the screen */
+  top: 0;
+  right: 0;             /* Align to the right side */
+  width: 400px;         /* Set a fixed width for the chat window */
+  height: 100%;         /* Full height */
+  background-color: white; /* White background for the chat window */
+  border-left: 1px solid #ddd;  /* Border separating from main content */
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* Shadow for effect */
+  display: none;         /* Initially hidden */
   flex-direction: column;
-  height: 100%;
+}
+
+.chatWindow.show {
+  display: flex;         /* Show the chat window when "show" class is added */
 }
 
 .messages {

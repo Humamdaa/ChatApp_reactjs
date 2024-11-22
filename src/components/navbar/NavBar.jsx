@@ -8,8 +8,9 @@ const Navbar = () => {
   // Set token from localStorage on component mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    setToken(storedToken); // Update state with token from localStorage
-  }, []); // Empty dependency array ensures this runs once when the component mounts
+    setToken(storedToken);
+    console.log(token);
+  }, []);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);

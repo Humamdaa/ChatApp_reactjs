@@ -1,53 +1,55 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { getChats, getUser } from "../../api/chatApi";
-import { FaUserCircle } from "react-icons/fa"; // Import a user icon from react-icons
+import { FaUserCircle } from "react-icons/fa";
+import { useMessage } from "../../context/MessageContext";
 import styles from "./ChatList.module.css";
 
 const ChatList = ({ onSelectChat }) => {
   const [users, setUsers] = useState([]);
+  const navigate = useNavigate();
+  const { showMessage } = useMessage();
 
   useEffect(() => {
-    const fetchUserAndChats = async () => {
-      try {
-        const userId = await getUser();
+    const token = localStorage.getItem("token");
 
-        const chats = await getChats(userId);
-        console.log("chats:", chats);
+    if (!token) {
+      showMessage("Please login to access this page.", "error");
+      navigate("/login");
+    } else {
+      const fetchUserAndChats = async () => {
+        try {
+          const userId = await getUser();
+          const merged = await getChats(userId);
+          const members = merged.map((chat) => chat.members).flat();
+          // console.log("memLis:", members);
+          setUsers(members);
+        } catch (error) {
+          console.log("err:", error);
+          console.error("Error fetching chats:", error);
+        }
+      };
 
-        const filteredChats = chats.map((chat) => {
-          const otherUserId = chat.members.find(
-            (memberId) => memberId !== userId
-          );
-          return { ...chat, otherUserId };
-        });
-
-        setUsers(filteredChats);
-      } catch (error) {
-        console.error("Error fetching chats:", error);
-      }
-    };
-
-    fetchUserAndChats();
-  }, []);
+      fetchUserAndChats();
+    }
+  }, [navigate, showMessage]);
 
   return (
     <div className={styles.chatList}>
       <h3 className={styles.titleChat}>Chats</h3>
       <div className={styles.userListContainer}>
-        {users.map((chat) => (
+        {users.map((user, userIds) => (
           <div
-            key={chat.id}
+            key={userIds}
             className={styles.userItem}
-            onClick={() => onSelectChat(chat.otherUserId)}
+            onClick={() => onSelectChat(user.id)}
           >
-            {/* Avatar */}
             <div className={styles.avatar}>
               <FaUserCircle size={30} color="#888" />
             </div>
-            {/* User Name (or ID if name isn't available) */}
             <div className={styles.userDetails}>
-              <span className={styles.userName}> {chat.otherUserId}</span>
+              <span className={styles.userName}>{user.name}</span>
             </div>
           </div>
         ))}
@@ -56,7 +58,6 @@ const ChatList = ({ onSelectChat }) => {
   );
 };
 
-// Prop validation
 ChatList.propTypes = {
   onSelectChat: PropTypes.func.isRequired,
 };

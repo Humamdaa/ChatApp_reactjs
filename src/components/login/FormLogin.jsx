@@ -1,14 +1,15 @@
 import { useState } from "react";
 import handleLoginForm from "../../services/login_helper/FormHandlerLog";
 import Message from "../message/Message";
+import { useMessage } from "../../context/MessageContext";
 import styles from "./FormLogin.module.css";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import { useNavigate } from "react-router-dom"; 
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const { message, messageType, showMessage, clearMessage } = useMessage(); 
 
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
@@ -23,21 +24,21 @@ const LoginForm = () => {
       email,
       password,
       setError,
-      setMessage
+      setError 
     );
 
     console.log(st);
     if (st === 200) {
       console.log("ok");
-      setMessage(msg);
-      navigate("/");
+      showMessage(msg, "success"); 
+      navigate("/"); 
     } else {
       setError(msg);
     }
   };
 
   const handleCloseMessage = () => {
-    setMessage("");
+    clearMessage();
     setError("");
   };
 
@@ -45,10 +46,11 @@ const LoginForm = () => {
     <div className={styles.formContainer}>
       <h2>Login</h2>
 
+      {/* Show global messages */}
       {message && (
         <Message
           message={message}
-          type="success"
+          type={messageType}
           onClose={handleCloseMessage}
         />
       )}
