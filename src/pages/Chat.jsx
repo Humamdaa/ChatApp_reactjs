@@ -5,6 +5,7 @@ import ChatWindow from "../components/chat/ChatWindow";
 import { jwtDecode } from "jwt-decode";
 const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedUserName, setSelectedUserName] = useState(null);
   const navigate = useNavigate();
   const [validToken, setValidToken] = useState(null);
 
@@ -38,20 +39,30 @@ const Chat = () => {
     }
   }, [navigate]);
 
-  useEffect(()=>{
-    
-  },selectedUserId)
+  useEffect(() => {}, selectedUserId);
   // Function to set the selected chat user
-  const handleSelectChat = (userId) => {
-    console.log("idGeted:", userId);
+  const handleSelectChat = (userId, userName) => {
+    // console.log("idGeted:", userId);
     setSelectedUserId(userId);
+    setSelectedUserName(userName);
+  };
+
+  const handleCloseChatWindow = () => {
+    setSelectedUserId(null); // Close chat by clearing selectedUserId
+    setSelectedUserName(""); // Clear user name
   };
 
   return (
     <div>
       <div style={{ display: "flex" }}>
         <ChatList onSelectChat={handleSelectChat} />
-        {selectedUserId && <ChatWindow userId={selectedUserId} />}
+        {selectedUserId && (
+          <ChatWindow
+            userId={selectedUserId} // Pass selectedUserId
+            name={selectedUserName} // Pass selectedUserName
+            onClose={handleCloseChatWindow} // Pass onClose function
+          />
+        )}
       </div>
     </div>
   );

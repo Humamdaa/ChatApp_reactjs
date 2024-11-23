@@ -1,7 +1,6 @@
 /* ChatList Styles */
 .chatList {
   position: fixed;
-  /* bottom: 0px; */
   top: 70px;
   left: 0;
   padding: 10px;

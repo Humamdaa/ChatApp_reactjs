@@ -35,12 +35,12 @@ export const getChats = async (userId) => {
 
 // Fetch messages in a specific chat
 export const getMessages = (chatId) => {
-  console.log("ch:", chatId);
+  
   return axios
     .get(`${BASE_URL}/msg/${chatId}`)
     .then((response) => response.data)
     .catch((error) => {
-      console.log(error);
+      console.log("errorapi: ", error);
       console.error("Error fetching messages:", error);
       throw error;
     });
@@ -67,17 +67,19 @@ export const openChatBetweenUsers = (user1Id, user2Id) => {
     )
     .then((response) => response.data._id)
     .catch((error) => {
+      console.log("errwindow: ", error);
       console.error("Error opening chat:", error);
       throw error;
     });
 };
 
 // Send a new message
-export const sendMessage = (chatId, message) => {
+export const sendMessage = (chatId, senderId, text) => {
   return axios
     .post(`${BASE_URL}/new/message`, {
       chatId,
-      message,
+      senderId,
+      text,
     })
     .then((response) => response.data)
     .catch((error) => {

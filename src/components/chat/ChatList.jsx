@@ -43,7 +43,7 @@ const ChatList = ({ onSelectChat }) => {
           <div
             key={userIds}
             className={styles.userItem}
-            onClick={() => onSelectChat(user.id)}
+            onClick={() => onSelectChat(user.id,user.name)}
           >
             <div className={styles.avatar}>
               <FaUserCircle size={30} color="#888" />

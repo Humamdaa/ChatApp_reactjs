@@ -1,64 +1,99 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { getMessages, openChatBetweenUsers } from "../../api/chatApi"; // Assuming this API fetches chat messages
+import {
+  getMessages,
+  openChatBetweenUsers,
+  sendMessage,
+} from "../../api/chatApi";
 import styles from "./ChatWindow.module.css";
 
-const ChatWindow = ({ userId }) => {
-  const [chatId, setChatId] = useState(null); // Ensure it's initialized with null, not undefined
+const ChatWindow = ({ userId, name, onClose }) => {
+  const [chatId, setChatId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [senderIds, setSenderIds] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
   useEffect(() => {
     const fetchChatId = async () => {
       try {
-        const chatId = await openChatBetweenUsers(userId, "null"); // Pass `null` for secondId
-        console.log("chatId: ", chatId);
-        setChatId(chatId); // Update the chatId state
+        const chatId = await openChatBetweenUsers(userId, "null");
+        setChatId(chatId);
       } catch (error) {
         console.error("Error fetching chatId:", error);
       }
     };
 
     if (userId) {
-      fetchChatId(); // Fetch chatId when the userId changes
+      fetchChatId();
     }
-  }, [userId]); // Only run when userId changes
+  }, [userId]);
 
-  // Effect 2: Fetch messages when chatId is set
   useEffect(() => {
     const fetchMessages = async () => {
       if (chatId) {
         try {
-          const messagesData = await getMessages(chatId); // Fetch messages for the chatId
-          console.log("msgs: ", messagesData);
-          setMessages(messagesData); // Set the fetched messages
+          const messagesData = await getMessages(chatId);
+          const messageTexts = messagesData.map((message) => message.text);
+          const senderIds = messagesData.map((message) => message.senderId);
+
+          setSenderIds(senderIds);
+          setMessages(messageTexts);
         } catch (error) {
           console.error("Error fetching messages:", error);
         }
       }
     };
 
-    fetchMessages(); // Fetch messages whenever chatId is updated
-  }, [chatId]); // Only run when chatId changes
+    fetchMessages();
+  }, [chatId]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "You", message: newMessage },
-      ]);
-      setNewMessage(""); // Clear the input after sending
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === "") return; // Don't send empty messages
+
+    // Check if senderId exists, if not find it from chat members
+    const senderId = userId; // Assuming you already have the userId
+
+    try {
+      // Call the sendMessage function to send the message
+      const response = await sendMessage(chatId, senderId, newMessage);
+      console.log("Message sent:", response);
+      // Optionally, you could also update the state to add the new message to the chat
+    } catch (error) {
+      console.error("Failed to send message", error);
     }
+
+    // Clear the message input after sending
+    setNewMessage("");
   };
 
   return (
     <div className={styles.chatWindow}>
+      <div className={styles.header}>
+        <span className={styles.userName}>{name}</span>{" "}
+        {/* Display the user name */}
+        <button className={styles.closeButton} onClick={onClose}>
+          X
+        </button>{" "}
+        {/* Close button */}
+      </div>
       <div className={styles.messages}>
-        {messages.map((msg, index) => (
-          <div key={index} className={styles.message}>
-            <strong>{msg.sender}:</strong> {msg.message}
-          </div>
-        ))}
+        {messages.length > 0 ? (
+          messages.map((msg, index) => {
+            const senderId = senderIds[index]; // Get the senderId for this message
+
+            return senderId !== userId ? (
+              <div key={index} className={styles.sender_message}>
+                {msg}
+              </div>
+            ) : (
+              <div key={index} className={styles.message}>
+                {msg}
+              </div>
+            );
+          })
+        ) : (
+          <div>No messages</div>
+        )}
       </div>
       <div className={styles.input}>
         <input
@@ -74,7 +109,9 @@ const ChatWindow = ({ userId }) => {
 };
 
 ChatWindow.propTypes = {
-  userId: PropTypes.string.isRequired, // userId is required to fetch messages
+  userId: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired, // userName prop
+  onClose: PropTypes.func.isRequired, // onClose function
 };
 
 export default ChatWindow;
