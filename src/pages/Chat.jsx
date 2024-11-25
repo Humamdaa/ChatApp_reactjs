@@ -3,34 +3,33 @@ import { useNavigate } from "react-router-dom";
 import ChatList from "../components/chat/ChatList";
 import ChatWindow from "../components/chat/ChatWindow";
 import { jwtDecode } from "jwt-decode";
+import { createChat, getChats } from "../api/chatApi";
+
 const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUserName, setSelectedUserName] = useState(null);
+  const [chatCreated, setCreateChat] = useState(null); // Store chat creation status
+  const [chats, setChats] = useState([]);
   const navigate = useNavigate();
-  const [validToken, setValidToken] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (token) {
       try {
-        // Decode the token
         const decodedToken = jwtDecode(token);
 
         const isExpired = decodedToken.exp * 1000 < Date.now();
 
         if (isExpired) {
-          console.log("expi");
-          // Token is expired, clear it from localStorage and redirect to login
           localStorage.removeItem("token");
           navigate("/login");
         } else {
           // Token is still valid
-          setValidToken(token);
+          fetchChats();
         }
       } catch (error) {
         console.error("Invalid token format", error);
-        console.log(error);
         localStorage.removeItem("token");
         navigate("/login");
       }
@@ -39,28 +38,51 @@ const Chat = () => {
     }
   }, [navigate]);
 
-  useEffect(() => {}, selectedUserId);
-  // Function to set the selected chat user
+  const fetchChats = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const userId = jwtDecode(token).userId;
+        const chatList = await getChats(userId); // Fetch chats from API
+        setChats(chatList);
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+      }
+    }
+  };
+
+  // Refresh the chat list when a new chat is created
+  const handleChatCreation = async (id) => {
+    const created = await createChat(id, "null");
+    console.log(created.message);
+    if (created.message) {
+      setCreateChat(created); // Store creation status
+    }
+  };
+
   const handleSelectChat = (userId, userName) => {
-    // console.log("idGeted:", userId);
     setSelectedUserId(userId);
     setSelectedUserName(userName);
   };
 
   const handleCloseChatWindow = () => {
-    setSelectedUserId(null); // Close chat by clearing selectedUserId
-    setSelectedUserName(""); // Clear user name
+    setSelectedUserId(null);
+    setSelectedUserName("");
   };
 
   return (
     <div>
       <div style={{ display: "flex" }}>
-        <ChatList onSelectChat={handleSelectChat} />
+        <ChatList
+          onSelectUser={handleChatCreation} // Pass function to handle user selection
+          onSelectChat={handleSelectChat}
+          refreshChat={chatCreated} // Pass the chat creation status to trigger refresh
+        />
         {selectedUserId && (
           <ChatWindow
-            userId={selectedUserId} // Pass selectedUserId
-            name={selectedUserName} // Pass selectedUserName
-            onClose={handleCloseChatWindow} // Pass onClose function
+            userId={selectedUserId}
+            name={selectedUserName}
+            onClose={handleCloseChatWindow}
           />
         )}
       </div>

@@ -10,7 +10,6 @@ import Login from "./pages/Login";
 // import { setupLocalStorageCleanup } from "./services/clearLocalStorage";
 
 function App() {
-  
   // useEffect(() => {
   //   const cleanup = setupLocalStorageCleanup();
 

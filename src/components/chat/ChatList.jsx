@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
-import { getChats, getUser } from "../../api/chatApi";
+import { getChats, getUser, getUsers } from "../../api/chatApi";
 import { FaUserCircle } from "react-icons/fa";
 import { useMessage } from "../../context/MessageContext";
+import { io } from "socket.io-client";
+
 import styles from "./ChatList.module.css";
 
-const ChatList = ({ onSelectChat }) => {
+const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
   const [users, setUsers] = useState([]);
+  const [chats, setChats] = useState([]);
+  const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
   const { showMessage } = useMessage();
 
@@ -22,31 +26,79 @@ const ChatList = ({ onSelectChat }) => {
         try {
           const userId = await getUser();
           const merged = await getChats(userId);
-          const members = merged.map((chat) => chat.members).flat();
-          // console.log("memLis:", members);
-          setUsers(members);
+          if (userId && merged) {
+            const members = merged.map((chat) => chat.members).flat();
+            setChats(members);
+          }
         } catch (error) {
-          console.log("err:", error);
-          console.error("Error fetching chats:", error);
+          console.log("Error fetching chats:", error);
         }
       };
-
       fetchUserAndChats();
     }
-  }, [navigate, showMessage]);
+  }, [refreshChat, navigate, showMessage]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const AllUsers = await getUsers();
+        if (AllUsers && Array.isArray(AllUsers.users)) {
+          setUsers(AllUsers.users);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchUsers();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!chats) return;
+
+    const newSocket = io("http://localhost:5001");
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+    });
+
+    newSocket.emit("online", localStorage.getItem("token"));
+
+    return () => {
+      newSocket.emit("leaveApp", localStorage.getItem("token"));
+      newSocket.close();
+    };
+  }, [chats]);
 
   return (
     <div className={styles.chatList}>
-      <h3 className={styles.titleChat}>Chats</h3>
       <div className={styles.userListContainer}>
-        {users.map((user, userIds) => (
+        <h3 className={styles.titleChat}>Chats</h3>
+        {chats &&
+          chats.map((chat, userIds) => (
+            <div
+              key={userIds}
+              className={styles.userItem}
+              onClick={() => onSelectChat(chat.id, chat.name)}
+            >
+              <div className={styles.avatar}>
+                <FaUserCircle size={30} color="#555" />
+              </div>
+              <div className={styles.userDetails}>
+                <span className={styles.userName}>{chat.name}</span>
+              </div>
+            </div>
+          ))}
+        <hr />
+        <h3 className={styles.titleChat}>Users</h3>
+        {users.map((user, index) => (
           <div
-            key={userIds}
+            key={index}
             className={styles.userItem}
-            onClick={() => onSelectChat(user.id,user.name)}
+            onClick={() => onSelectUser(user._id)}
           >
             <div className={styles.avatar}>
-              <FaUserCircle size={30} color="#888" />
+              <FaUserCircle size={30} color="#999" />
             </div>
             <div className={styles.userDetails}>
               <span className={styles.userName}>{user.name}</span>
@@ -60,6 +112,8 @@ const ChatList = ({ onSelectChat }) => {
 
 ChatList.propTypes = {
   onSelectChat: PropTypes.func.isRequired,
+  onSelectUser: PropTypes.func.isRequired,
+  refreshChat: PropTypes.bool.isRequired,
 };
 
 export default ChatList;

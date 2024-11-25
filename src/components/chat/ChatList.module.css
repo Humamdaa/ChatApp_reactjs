@@ -29,7 +29,8 @@
   padding: 10px 0;
 }
 
-.userItem {
+/* Chat item styling */
+.chatItem {
   display: flex;
   align-items: center;
   padding: 12px 20px;
@@ -43,13 +44,37 @@
   width: 100%;
 }
 
-.userItem:hover {
+.chatItem:hover {
   background-color: #f1f1f1;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.userItem:active {
+.chatItem:active {
   background-color: #e1e1e1;
+}
+
+/* User item styling (for the "users" list) */
+.userItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  margin-bottom: 12px;
+  background-color: #e3e3e3; /* Different background color for users */
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  width: 100%;
+}
+
+.userItem:hover {
+  background-color: #d1d1d1; /* Lighter shade on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.userItem:active {
+  background-color: #c1c1c1;
 }
 
 /* Avatar styling */
@@ -76,6 +101,8 @@
   text-overflow: ellipsis; /* Truncate text if it overflows */
 }
 
+/* Hover state for both chats and users */
+.chatItem:hover .userName,
 .userItem:hover .userName {
   color: #007bff; /* Change name color on hover for better interactivity */
   font-size: 20px;
