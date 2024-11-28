@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
-import { getChats, getUser, getUsers } from "../../api/chatApi";
+import { getChats, getUser, getUsers } from "../../../api/chatApi";
 import { FaUserCircle } from "react-icons/fa";
-import { useMessage } from "../../context/MessageContext";
+import { useMessage } from "../../../context/MessageContext";
 import { io } from "socket.io-client";
 
 import styles from "./ChatList.module.css";
 
 const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
+  const [userId, setUserId] = useState([]);
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
-  const [socket, setSocket] = useState(null);
+  const [sockets, setSockets] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const navigate = useNavigate();
   const { showMessage } = useMessage();
 
@@ -25,9 +27,13 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
       const fetchUserAndChats = async () => {
         try {
           const userId = await getUser();
+
+          setUserId(userId);
+
           const merged = await getChats(userId);
           if (userId && merged) {
             const members = merged.map((chat) => chat.members).flat();
+            // console.log("meee:", members);
             setChats(members);
           }
         } catch (error) {
@@ -56,13 +62,19 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
     if (!chats) return;
 
     const newSocket = io("http://localhost:5001");
-    setSocket(newSocket);
 
     newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
+      setSockets((prevSockets) => [...prevSockets, newSocket.id]);
+
+      // console.log("Socket connected:", newSocket.id);
     });
 
-    newSocket.emit("online", localStorage.getItem("token"));
+    newSocket.emit("online", userId);
+
+    newSocket.on("onlineUsers", (users) => {
+      // console.log("usersOn: ", users);
+      setOnlineUsers(new Set(users)); // Update the online users
+    });
 
     return () => {
       newSocket.emit("leaveApp", localStorage.getItem("token"));
@@ -87,6 +99,12 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
               <div className={styles.userDetails}>
                 <span className={styles.userName}>{chat.name}</span>
               </div>
+              {/* Display green circle if user is online */}
+              <div
+                className={`${styles.statusIndicator} ${
+                  onlineUsers.has(chat.id) ? styles.online : ""
+                }`}
+              />
             </div>
           ))}
         <hr />
@@ -103,6 +121,12 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
             <div className={styles.userDetails}>
               <span className={styles.userName}>{user.name}</span>
             </div>
+            {/* Display green circle if user is online */}
+            <div
+              className={`${styles.statusIndicator} ${
+                onlineUsers.has(user._id) ? styles.online : ""
+              }`}
+            />
           </div>
         ))}
       </div>

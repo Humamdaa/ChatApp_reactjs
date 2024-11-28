@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ChatList from "../components/chat/ChatList";
-import ChatWindow from "../components/chat/ChatWindow";
+import ChatList from "../components/chat/chatList/ChatList";
+import ChatWindow from "../components/chat/chatWindow/ChatWindow";
 import { jwtDecode } from "jwt-decode";
 import { createChat, getChats } from "../api/chatApi";
 
@@ -9,7 +9,7 @@ const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUserName, setSelectedUserName] = useState(null);
   const [chatCreated, setCreateChat] = useState(null); // Store chat creation status
-  const [chats, setChats] = useState([]);
+  // const [chats, setChats] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +26,8 @@ const Chat = () => {
           navigate("/login");
         } else {
           // Token is still valid
-          fetchChats();
+          console.log("else in chat");
+          // fetchChats();
         }
       } catch (error) {
         console.error("Invalid token format", error);
@@ -38,18 +39,18 @@ const Chat = () => {
     }
   }, [navigate]);
 
-  const fetchChats = async () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const userId = jwtDecode(token).userId;
-        const chatList = await getChats(userId); // Fetch chats from API
-        setChats(chatList);
-      } catch (error) {
-        console.error("Error fetching chats:", error);
-      }
-    }
-  };
+  // const fetchChats = async () => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     try {
+  //       const userId = jwtDecode(token).userId;
+  //       const chatList = await getChats(userId); // Fetch chats from API
+  //       setChats(chatList);
+  //     } catch (error) {
+  //       console.error("Error fetching chats:", error);
+  //     }
+  //   }
+  // };
 
   // Refresh the chat list when a new chat is created
   const handleChatCreation = async (id) => {

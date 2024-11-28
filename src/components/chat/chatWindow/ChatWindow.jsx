@@ -4,12 +4,13 @@ import {
   getMessages,
   openChatBetweenUsers,
   sendMessage,
-} from "../../api/chatApi";
+} from "../../../api/chatApi";
 import { io } from "socket.io-client"; // Import socket.io-client
 import styles from "./ChatWindow.module.css";
 
 const ChatWindow = ({ userId, name, onClose }) => {
   const [chatId, setChatId] = useState(null);
+  const [inChat, setIsInChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [senderIds, setSenderIds] = useState([]);
   const [socket, setSocket] = useState(null); // State to store socket instance
@@ -65,13 +66,27 @@ const ChatWindow = ({ userId, name, onClose }) => {
 
     // Join the chat room based on chatId
     newSocket.emit("joinChat", chatId);
-    
-    // Listen for new messages in the chat and update state
-    newSocket.on("newMessage", (message) => {
-      console.log("Received new message from socket:", message);
-      setMessages((prevMessages) => [...prevMessages, message.text]);
-      setSenderIds((prevSenderIds) => [...prevSenderIds, message.senderId]);
+
+    // Listen for the chatStatus event to check if the user is in the chat
+    newSocket.on("chatStatus", (data) => {
+      if (data.status === "joined") {
+        console.log("user joins : ", data.userId);
+        setIsInChat(true); // Set the user status to "joined"
+      } else {
+        setIsInChat(false); // User is not in the chat
+      }
     });
+
+    // Listen for new messages in the chat and update state
+    newSocket.on(
+      "newMessage",
+      (message) => {
+        console.log("Received new message from socket:", message.text);
+        setMessages((prevMessages) => [...prevMessages, message.text]);
+        setSenderIds((prevSenderIds) => [...prevSenderIds, message.senderId]);
+      },
+      [chatId]
+    );
 
     // Cleanup: Leave the chat room and close socket on unmount
     return () => {
@@ -108,12 +123,12 @@ const ChatWindow = ({ userId, name, onClose }) => {
       }
 
       // Update local state to immediately display the message
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setSenderIds((prevSenderIds) => [...prevSenderIds, senderId]);
+      // setMessages((prevMessages) => [...prevMessages, newMessage]);
+      // setSenderIds((prevSenderIds) => [...prevSenderIds, senderId]);
     } catch (error) {
       console.error("Failed to send message", error);
     }
-    
+
     // Clear the message input field after sending
     messageInputRef.current.value = ""; // Clear input using ref
   };

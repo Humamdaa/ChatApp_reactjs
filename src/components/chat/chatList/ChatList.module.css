@@ -107,3 +107,34 @@
   color: #007bff; /* Change name color on hover for better interactivity */
   font-size: 20px;
 }
+
+.userItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  margin-right: 10px;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-size: 16px;
+}
+
+.statusIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc; /* Default gray color */
+  margin-left: 10px;
+}
+
+.statusIndicator.online {
+  background-color: green; /* Green for online users */
+}
