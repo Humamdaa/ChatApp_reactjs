@@ -1,6 +1,5 @@
 // api.js
 import axios from "axios";
-import { responsivePropType } from "react-bootstrap/esm/createUtilityClasses";
 
 const BASE_URL = "http://127.0.0.1:5001";
 
@@ -60,7 +59,7 @@ export const createChat = async (firstId, secondId) => {
         },
       }
     );
-    console.log("create chat:", response.data);
+    // console.log("create chat:", response.data);
     return response.data;
   } catch (error) {
     console.log("creCha:", error);
@@ -91,8 +90,7 @@ export const getMessages = (chatId) => {
     .get(`${BASE_URL}/msg/${chatId}`)
     .then((response) => response.data)
     .catch((error) => {
-      console.log("errorapi: ", error);
-      console.error("Error fetching messages:", error);
+      console.error("Error fetching messages...:", error);
       throw error;
     });
 };
@@ -120,21 +118,6 @@ export const openChatBetweenUsers = (user1Id, user2Id) => {
     .catch((error) => {
       console.log("errwindow: ", error);
       console.error("Error opening chat:", error);
-      throw error;
-    });
-};
-
-// Send a new message
-export const sendMessage = (chatId, senderId, text) => {
-  return axios
-    .post(`${BASE_URL}/new/message`, {
-      chatId,
-      senderId,
-      text,
-    })
-    .then((response) => response.data)
-    .catch((error) => {
-      console.error("Error sending message:", error);
       throw error;
     });
 };

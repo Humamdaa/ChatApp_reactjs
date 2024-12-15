@@ -1,183 +1,138 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import PropTypes from "prop-types";
-import {
-  getMessages,
-  openChatBetweenUsers,
-  sendMessage,
-} from "../../../api/chatApi";
-import { io } from "socket.io-client"; // Import socket.io-client
 import styles from "./ChatWindow.module.css";
+import { useScrollToBottom } from "./hooks/useScrollToBottom";
+import { useFetchMessages } from "./hooks/useFetchMessages";
+import { useSocketHandler } from "./hooks/useSocketHandler";
+import { handleSendMessage } from "./utils/messageUtils";
+import { openChat } from "./utils/openChatUtils";
 
-const ChatWindow = ({ userId, name, onClose }) => {
+const ChatWindow = ({
+  userId,
+  anotherUserId,
+  name,
+  onClose,
+  checkOnlineUser,
+  socket,
+}) => {
   const [chatId, setChatId] = useState(null);
-  const [inChat, setIsInChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [senderIds, setSenderIds] = useState([]);
-  const [socket, setSocket] = useState(null); // State to store socket instance
+  const [messagesData, setMessageData] = useState([]);
+  // const [socket, setSocket] = useState(null); // State to store socket instance
+  const [chatUsers, setChatUsers] = useState({});
   const messageInputRef = useRef(null); // Create a ref for the input field
   const messagesEndRef = useRef(null); // Ref for the messages container to scroll to the bottom
 
   // Fetch the chatId when the component mounts or userId changes
-  useEffect(() => {
-    const fetchChatId = async () => {
-      try {
-        const chatId = await openChatBetweenUsers(userId, "null");
-        setChatId(chatId);
-      } catch (error) {
-        console.error("Error fetching chatId:", error);
-      }
-    };
-
-    if (userId) {
-      fetchChatId();
-    }
-  }, [userId]);
-
+  openChat(anotherUserId,setChatId);
+  
   // Fetch messages for the chatId
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (chatId) {
-        try {
-          const messagesData = await getMessages(chatId);
-          const messageTexts = messagesData.map((message) => message.text);
-          const senderIds = messagesData.map((message) => message.senderId);
-
-          setSenderIds(senderIds);
-          setMessages(messageTexts);
-        } catch (error) {
-          console.error("Error fetching messages:", error);
-        }
-      }
-    };
-
-    fetchMessages();
-  }, [chatId]);
+  useFetchMessages(chatId, setMessages, setSenderIds, setMessageData);
 
   // Setup socket connection and listen for new messages
-  useEffect(() => {
-    if (!chatId) return; // If no chatId, don't setup socket
-
-    const newSocket = io("http://localhost:5001"); // Connect to the server
-    setSocket(newSocket); // Store the socket connection
-
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id); // Log the socket ID on connection
-    });
-
-    // Join the chat room based on chatId
-    newSocket.emit("joinChat", chatId);
-
-    // Listen for the chatStatus event to check if the user is in the chat
-    newSocket.on("chatStatus", (data) => {
-      if (data.status === "joined") {
-        console.log("user joins : ", data.userId);
-        setIsInChat(true); // Set the user status to "joined"
-      } else {
-        setIsInChat(false); // User is not in the chat
-      }
-    });
-
-    // Listen for new messages in the chat and update state
-    newSocket.on(
-      "newMessage",
-      (message) => {
-        console.log("Received new message from socket:", message.text);
-        setMessages((prevMessages) => [...prevMessages, message.text]);
-        setSenderIds((prevSenderIds) => [...prevSenderIds, message.senderId]);
-      },
-      [chatId]
-    );
-
-    // Cleanup: Leave the chat room and close socket on unmount
-    return () => {
-      newSocket.emit("leaveChat", chatId); // Optionally leave the chat room
-      newSocket.close(); // Cleanup socket when the component unmounts
-    };
-  }, [chatId]);
+  useSocketHandler(
+    socket,
+    chatId,
+    userId,
+    setMessageData,
+    setMessages,
+    setSenderIds,
+    setChatUsers
+  );
 
   // Scroll to the bottom of the messages whenever new messages are added
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  useScrollToBottom(messagesData, messagesEndRef);
+
+  const getTickIcon = (status) => {
+    if (status === "sent") {
+      return "✓"; // Single tick for sent
+    } else if (status === "received") {
+      return "✓✓"; // Two ticks for received
+    } else if (status === "read") {
+      return "✓✓"; // Blue two ticks for read
     }
-  }, [messages]); // This effect runs every time messages change
-
-  // Handle sending a new message
-  const handleSendMessage = async () => {
-    const newMessage = messageInputRef.current.value; // Get the input value using ref
-    if (newMessage.trim() === "") return; // Don't send empty messages
-
-    const senderId = userId; // Sender is the logged-in user
-
-    try {
-      // Save the message in the database
-      const response = await sendMessage(chatId, senderId, newMessage);
-
-      // Emit the new message to the server for real-time updates
-      if (socket) {
-        socket.emit("newMessage", {
-          chatId,
-          senderId,
-          text: newMessage,
-        });
-      }
-
-      // Update local state to immediately display the message
-      // setMessages((prevMessages) => [...prevMessages, newMessage]);
-      // setSenderIds((prevSenderIds) => [...prevSenderIds, senderId]);
-    } catch (error) {
-      console.error("Failed to send message", error);
-    }
-
-    // Clear the message input field after sending
-    messageInputRef.current.value = ""; // Clear input using ref
+    return ""; // Default if no status is set
   };
 
   return (
     <div className={styles.chatWindow}>
       <div className={styles.header}>
         <span className={styles.userName}>{name}</span>
-        <button className={styles.closeButton} onClick={onClose}>
+        <button
+          className={styles.closeButton}
+          onClick={() => onClose(socket, chatId, userId)}
+        >
           X
         </button>
       </div>
       <div className={styles.messages}>
-        {messages.length > 0 ? (
+        {messagesData.length > 0 ? (
           messages.map((msg, index) => {
             const senderId = senderIds[index];
+            const status = messagesData[index]
+              ? messagesData[index].status
+              : "sent";
+            const tickIcon = getTickIcon(status); // Use getIcon to determine the tick icon
 
             return senderId !== userId ? (
+              // Message from another user (left aligned)
               <div key={index} className={styles.sender_message}>
                 {msg}
+                {/* Optionally display the tick icon if needed */}
+                {/* <span className={styles.messageStatus}>{tickIcon}</span> */}
               </div>
             ) : (
+              // Message from the current user (right aligned)
               <div key={index} className={styles.message}>
                 {msg}
+                <span
+                  className={`${styles.messageStatus} ${
+                    status === "read"
+                      ? styles.read
+                      : status === "received"
+                      ? styles.received
+                      : styles.sent
+                  }`}
+                >
+                  {tickIcon}
+                </span>
               </div>
             );
           })
         ) : (
           <div>No messages</div>
         )}
-        {/* This is the ref that will ensure we scroll to the bottom */}
         <div ref={messagesEndRef} />
       </div>
       <div className={styles.input}>
-        <input
-          type="text"
-          ref={messageInputRef} // Attach ref to the input
-          placeholder="Type a message"
-        />
-        <button onClick={handleSendMessage}>Send</button>
+        <input type="text" ref={messageInputRef} placeholder="Type a message" />
+        <button
+          onClick={() =>
+            handleSendMessage(
+              messageInputRef,
+              socket,
+              userId,
+              chatId,
+              anotherUserId,
+              checkOnlineUser,
+              chatUsers
+            )
+          }
+        >
+          Send
+        </button>
       </div>
     </div>
   );
 };
 
 ChatWindow.propTypes = {
-  userId: PropTypes.string.isRequired, // The logged-in userId
+  anotherUserId: PropTypes.string.isRequired, // The logged-in userId
   name: PropTypes.string.isRequired, // User's name to display
   onClose: PropTypes.func.isRequired, // Function to close the chat window
+  checkOnlineUser: PropTypes.func.isRequired,
+  socket: PropTypes.object,
 };
 
 export default ChatWindow;

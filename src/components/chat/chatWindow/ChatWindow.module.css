@@ -1,3 +1,4 @@
+/* Chat window container */
 .chatWindow {
   position: fixed;
   right: 10px;
@@ -11,8 +12,10 @@
   flex-direction: column;
   padding: 10px;
   z-index: 1000;
+  font-family: Arial, sans-serif; /* Choose a comfortable font */
 }
 
+/* Header styles */
 .header {
   display: flex;
   justify-content: space-between;
@@ -23,7 +26,7 @@
 .userName {
   font-size: 18px;
   font-weight: bold;
-  color: #888;
+  color: #555; /* Slightly darker for better visibility */
 }
 
 .closeButton {
@@ -38,6 +41,7 @@
   color: red;
 }
 
+/* Container for messages */
 .messages {
   flex: 1;
   overflow-y: auto;
@@ -46,28 +50,44 @@
   border: 1px solid #ddd;
   border-radius: 5px;
   margin-bottom: 20px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05); /* Soft inner shadow for better depth */
 }
 
-.message {
-  margin: 10px 0;
-  padding: 5px;
-  background-color: #474b46;
-  border-radius: 5px;
-  margin-left: 20px;
-}
-
+/* Message from another user (left aligned) */
 .sender_message {
-  margin: 10px 0;
-  padding: 5px;
-  margin-right: 20px;
-  background-color: #8b8a8a;
-  border-radius: 5px;
+  display: flex;
+  justify-content: flex-start; /* Align text to the left */
+  position: relative;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+  background-color: #bce6bc; /* Soft green background */
+  border-radius: 8px;
+  max-width: 75%; /* Limit width for a nice flow */
+  margin-left: auto; /* Push it to the right */
+  font-size: 17px;
 }
 
+/* Message from the current user (right aligned) */
+.message {
+  display: flex;
+  /* justify-content: flex-end; Align text to the right */
+  position: relative;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+  background-color: #6e6e6e; /* Light blue for sent messages */
+  border-radius: 8px;
+  max-width: 75%;
+  margin-right: auto; /* Push it to the left */
+
+  font-size: 17px;
+}
+
+/* Input field and send button */
 .input {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 10px;
 }
 
 .input input {
@@ -76,6 +96,7 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 14px;
+  color: #333; /* Darker text for better readability */
 }
 
 .input button {
@@ -92,6 +113,32 @@
   background-color: #0056b3;
 }
 
+/* When chat window is shown */
 .chatWindow.show {
   display: flex;
+}
+
+/* Message status (tick icon) for both sender and receiver */
+.messageStatus {
+  position: absolute;
+  right: 10px; /* Position the tick at the right end */
+  bottom: 8px; /* Align it to the bottom */
+  font-size: 14px;
+  color: rgb(252, 213, 213);
+  margin-left: 10px; /* Space between text and status */
+}
+
+/* For read messages, add a blue color for the tick icon */
+.messageStatus.read {
+  color: blue;
+}
+
+/* Specific styling for ticks in received messages */
+.messageStatus.received {
+  color: #4caf50; /* Green for received */
+}
+
+/* Specific styling for ticks in sent messages */
+.messageStatus.sent {
+  color: rgb(212, 99, 99); /* Red or another color for sent */
 }

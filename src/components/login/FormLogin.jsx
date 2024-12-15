@@ -3,13 +3,13 @@ import handleLoginForm from "../../services/login_helper/FormHandlerLog";
 import Message from "../message/Message";
 import { useMessage } from "../../context/MessageContext";
 import styles from "./FormLogin.module.css";
-import { useNavigate } from "react-router-dom"; 
+import { Link, useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { message, messageType, showMessage, clearMessage } = useMessage(); 
+  const { message, messageType, showMessage, clearMessage } = useMessage();
 
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
@@ -24,14 +24,14 @@ const LoginForm = () => {
       email,
       password,
       setError,
-      setError 
+      setError
     );
 
     console.log(st);
     if (st === 200) {
       console.log("ok");
-      showMessage(msg, "success"); 
-      navigate("/"); 
+      showMessage(msg, "success");
+      navigate("/");
     } else {
       setError(msg);
     }
@@ -45,7 +45,6 @@ const LoginForm = () => {
   return (
     <div className={styles.formContainer}>
       <h2>Login</h2>
-
       {/* Show global messages */}
       {message && (
         <Message
@@ -54,11 +53,9 @@ const LoginForm = () => {
           onClose={handleCloseMessage}
         />
       )}
-
       {error && (
         <Message message={error} type="error" onClose={handleCloseMessage} />
       )}
-
       <form onSubmit={handleSubmit}>
         <div className={styles.formField}>
           <label className={styles.label}>Email</label>
@@ -82,6 +79,11 @@ const LoginForm = () => {
           Login
         </button>
       </form>
+      <div className={styles.writing}>Don't have an account?</div>
+      <Link to="/register" className={styles.loginLink}>
+        {" "}
+        Register here
+      </Link>
     </div>
   );
 };

@@ -1,48 +1,38 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
-import { getChats, getUser, getUsers } from "../../../api/chatApi";
+import { getChats, getUsers } from "../../../api/chatApi";
 import { FaUserCircle } from "react-icons/fa";
-import { useMessage } from "../../../context/MessageContext";
-import { io } from "socket.io-client";
+// import { useMessage } from "../../../context/MessageContext";
 
 import styles from "./ChatList.module.css";
 
-const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
-  const [userId, setUserId] = useState([]);
+const ChatList = ({
+  userId,
+  onSelectChat,
+  onSelectUser,
+  refreshChat,
+  onlineUsers,
+}) => {
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
-  const [sockets, setSockets] = useState([]);
-  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const navigate = useNavigate();
-  const { showMessage } = useMessage();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      showMessage("Please login to access this page.", "error");
-      navigate("/login");
-    } else {
-      const fetchUserAndChats = async () => {
-        try {
-          const userId = await getUser();
-
-          setUserId(userId);
-
-          const merged = await getChats(userId);
-          if (userId && merged) {
-            const members = merged.map((chat) => chat.members).flat();
-            // console.log("meee:", members);
-            setChats(members);
-          }
-        } catch (error) {
-          console.log("Error fetching chats:", error);
+    const fetchChats = async () => {
+      try {
+        const merged = await getChats(userId);
+        if (userId && merged) {
+          // console.log("userId in list : ", userId);
+          const members = merged.map((chat) => chat.members).flat();
+          setChats(members);
         }
-      };
-      fetchUserAndChats();
-    }
-  }, [refreshChat, navigate, showMessage]);
+      } catch (error) {
+        console.log("Error fetching chats:", error);
+      }
+    };
+    fetchChats();
+  }, [refreshChat, userId]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -58,29 +48,6 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
     fetchUsers();
   }, [navigate]);
 
-  useEffect(() => {
-    if (!chats) return;
-
-    const newSocket = io("http://localhost:5001");
-
-    newSocket.on("connect", () => {
-      setSockets((prevSockets) => [...prevSockets, newSocket.id]);
-
-      // console.log("Socket connected:", newSocket.id);
-    });
-
-    newSocket.emit("online", userId);
-
-    newSocket.on("onlineUsers", (users) => {
-      // console.log("usersOn: ", users);
-      setOnlineUsers(new Set(users)); // Update the online users
-    });
-
-    return () => {
-      newSocket.emit("leaveApp", localStorage.getItem("token"));
-      newSocket.close();
-    };
-  }, [chats]);
 
   return (
     <div className={styles.chatList}>
@@ -91,7 +58,7 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
             <div
               key={userIds}
               className={styles.userItem}
-              onClick={() => onSelectChat(chat.id, chat.name)}
+              onClick={() => onSelectChat(userId, chat.id, chat.name)}
             >
               <div className={styles.avatar}>
                 <FaUserCircle size={30} color="#555" />
@@ -99,7 +66,6 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
               <div className={styles.userDetails}>
                 <span className={styles.userName}>{chat.name}</span>
               </div>
-              {/* Display green circle if user is online */}
               <div
                 className={`${styles.statusIndicator} ${
                   onlineUsers.has(chat.id) ? styles.online : ""
@@ -121,7 +87,6 @@ const ChatList = ({ onSelectChat, onSelectUser, refreshChat }) => {
             <div className={styles.userDetails}>
               <span className={styles.userName}>{user.name}</span>
             </div>
-            {/* Display green circle if user is online */}
             <div
               className={`${styles.statusIndicator} ${
                 onlineUsers.has(user._id) ? styles.online : ""
@@ -138,6 +103,8 @@ ChatList.propTypes = {
   onSelectChat: PropTypes.func.isRequired,
   onSelectUser: PropTypes.func.isRequired,
   refreshChat: PropTypes.bool.isRequired,
+  userId: PropTypes.string.isRequired,
+  onlineUsers: PropTypes.instanceOf(Set).isRequired,
 };
 
 export default ChatList;

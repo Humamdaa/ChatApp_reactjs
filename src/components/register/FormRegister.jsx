@@ -2,7 +2,7 @@ import { useState } from "react";
 import styles from "./FormRegister.module.css";
 import handleRegisterForm from "../../services/register_helper/FormHandlerReg";
 import Message from "../message/Message";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -41,11 +41,9 @@ const Register = () => {
           onClose={handleCloseMessage}
         />
       )}
-
       {error && (
         <Message message={error} type="error" onClose={handleCloseMessage} />
       )}
-
       <form onSubmit={handleSubmit}>
         <h1>Register</h1>
         <div className={styles.formField}>
@@ -86,6 +84,12 @@ const Register = () => {
           Sign Up
         </button>
       </form>
+      <div className={styles.writing}>You have an account?</div>
+
+      <Link to="/login" className={styles.registerLink}>
+        {" "}
+        login here
+      </Link>
     </div>
   );
 };
